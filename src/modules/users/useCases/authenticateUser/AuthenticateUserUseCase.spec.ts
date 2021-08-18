@@ -3,6 +3,7 @@ import { InMemoryUsersRepository } from "../../repositories/in-memory/InMemoryUs
 import { CreateUserUseCase } from "../createUser/CreateUserUseCase";
 import { ICreateUserDTO } from "../createUser/ICreateUserDTO";
 import { AuthenticateUserUseCase } from "./AuthenticateUserUseCase";
+import { IncorrectEmailOrPasswordError } from "./IncorrectEmailOrPasswordError";
 
 let authenticateUserUseCase: AuthenticateUserUseCase;
 let inMemoryUsersRepository: InMemoryUsersRepository;
@@ -38,23 +39,23 @@ describe("Authenticate User", () => {
         email: "false@email.com",
         password: "1234",
       })
-    }).rejects.toBeInstanceOf(AppError);
+    }).rejects.toEqual(new IncorrectEmailOrPasswordError);
   });
 
-  it("should not be able to authenticate with incorrect password", () => {
+  it("should not be able to authenticate with incorrect password", async () => {
+    const user: ICreateUserDTO =  {
+      name: "nameuser",
+      email: "email@test.com",
+      password: "1234",
+    }
+
+    await createUserUseCase.execute(user);
+
     expect(async () => {
-      const user: ICreateUserDTO =  {
-        name: "nameuser",
-        email: "email@test.com",
-        password: "1234",
-      }
-
-      await createUserUseCase.execute(user);
-
       await authenticateUserUseCase.execute({
         email: user.email,
         password: "senhaincorreta",
       })
-    }).rejects.toBeInstanceOf(AppError);
+    }).rejects.toEqual(new IncorrectEmailOrPasswordError);
   });
 });

@@ -5,6 +5,7 @@ import { InMemoryUsersRepository } from "../../../users/repositories/in-memory/I
 import { CreateUserUseCase } from "../../../users/useCases/createUser/CreateUserUseCase";
 import { ICreateUserDTO } from "../../../users/useCases/createUser/ICreateUserDTO";
 import { InMemoryStatementsRepository } from "../../repositories/in-memory/InMemoryStatementsRepository";
+import { CreateStatementError } from "./CreateStatementError";
 import { CreateStatementUseCase } from "./CreateStatementUseCase";
 import { ICreateStatementDTO } from "./ICreateStatementDTO";
 
@@ -93,18 +94,16 @@ describe("Create Statement", () => {
       type: OperationType.DEPOSIT,
     });
 
-    const statement: ICreateStatementDTO = {
-      user_id: userID,
-      description: "Venda sofa",
-      amount: 500,
-      type: OperationType.WITHDRAW,
-    }
+    expect(async () => {
+      const statement: ICreateStatementDTO = {
+        user_id: userID,
+        description: "Venda sofa",
+        amount: 500,
+        type: OperationType.WITHDRAW,
+      }
 
-    const statementTwo = await createStatementUsecase.execute(statement);
-
-    console.log("statementTwo", statementTwo);
-
-    expect(statementTwo).toThrow();
+      await createStatementUsecase.execute(statement);
+    }).rejects.toEqual(new CreateStatementError.InsufficientFunds);
   });
 
   it("should not be able to create a new statement with an user that doesn't exists and type is deposit", async () => {
@@ -117,7 +116,7 @@ describe("Create Statement", () => {
       }
 
       await createStatementUsecase.execute(statement);
-    }).rejects.toBeInstanceOf(AppError);
+    }).rejects.toEqual(new CreateStatementError.UserNotFound);
   });
 
   it("should not be able to create a new statement with an user that doesn't exists and type is withdraw", async () => {
@@ -130,6 +129,6 @@ describe("Create Statement", () => {
       }
 
       await createStatementUsecase.execute(statement);
-    }).rejects.toBeInstanceOf(AppError);
+    }).rejects.toEqual(new CreateStatementError.UserNotFound);
   });
 });
