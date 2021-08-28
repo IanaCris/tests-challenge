@@ -6,7 +6,7 @@ describe("Create Statement Controller", () => {
     const response = await request(app).post("/statement/deposit")
       .send({
         amount: 15,
-        description: "Compra tal"
+        description: "Deposito salario"
       });
 
     console.log(response.status);
