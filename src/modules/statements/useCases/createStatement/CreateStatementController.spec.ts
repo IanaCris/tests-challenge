@@ -9,6 +9,6 @@ describe("Create Statement Controller", () => {
         description: "Deposito salario"
       });
 
-    console.log(response.status);
+    // console.log(response.status);
   });
 });
