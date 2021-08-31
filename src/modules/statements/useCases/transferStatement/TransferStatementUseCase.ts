@@ -9,6 +9,12 @@ interface IRequest {
   amount: number;
   description: string;
 }
+
+enum OperationType {
+  DEPOSIT = 'deposit',
+  WITHDRAW = 'withdraw',
+  TRANSFER =  'transfer',
+}
 @injectable()
 class TransferStatementUseCase {
   constructor(
@@ -31,9 +37,17 @@ class TransferStatementUseCase {
     const balance_sender = await this.statementsRepository.getUserBalance({user_id: sender_id});
 
     if (balance_sender.balance < amount) {
-      throw new TransferStatementError.UserReceiverNotFound();
+      throw new TransferStatementError.InsufficientFunds();
     }
 
+    const statementOperation = await this.statementsRepository.create({
+      user_id,
+      type: "transfer" as OperationType,
+      amount,
+      description
+    });
+
+    return statementOperation;
   }
 }
 
