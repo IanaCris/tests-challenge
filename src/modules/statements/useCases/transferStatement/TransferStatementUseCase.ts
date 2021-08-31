@@ -1,8 +1,10 @@
 import { inject, injectable } from "tsyringe";
+import { IUsersRepository } from "../../../users/repositories/IUsersRepository";
 import { IStatementsRepository } from "../../repositories/IStatementsRepository";
+import { TransferStatementError } from "./TransferStatementError";
 
 interface IRequest {
-  send_user_id: string;
+  sender_id: string;
   user_id: string;
   amount: number;
   description: string;
@@ -11,10 +13,26 @@ interface IRequest {
 class TransferStatementUseCase {
   constructor(
     @inject('StatementsRepository')
-    private statementsRepository: IStatementsRepository
+    private statementsRepository: IStatementsRepository,
+
+    @inject('UsersRepository')
+    private usersRepository: IUsersRepository,
   ) {}
 
-  async execute({ amount, description, send_user_id, user_id}: IRequest) {
+  async execute({ amount, description, sender_id, user_id}: IRequest) {
+    //verifica se o usuario recebedor existe
+    const user_receiver = await this.usersRepository.findById(user_id);
+
+    if(!user_receiver) {
+      throw new TransferStatementError.UserReceiverNotFound();
+    }
+
+    //verifica se usuario que envia tem saldo para poder tranferir - nao transf. valor maior que o saldo atual
+    const balance_sender = await this.statementsRepository.getUserBalance({user_id: sender_id});
+
+    if (balance_sender.balance < amount) {
+      throw new TransferStatementError.UserReceiverNotFound();
+    }
 
   }
 }
