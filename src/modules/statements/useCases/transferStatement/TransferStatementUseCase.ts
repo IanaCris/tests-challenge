@@ -13,7 +13,7 @@ interface IRequest {
 enum OperationType {
   DEPOSIT = 'deposit',
   WITHDRAW = 'withdraw',
-  TRANSFER =  'transfer',
+  TRANSFER = 'transfer',
 }
 @injectable()
 class TransferStatementUseCase {
@@ -25,7 +25,7 @@ class TransferStatementUseCase {
     private usersRepository: IUsersRepository,
   ) {}
 
-  async execute({ amount, description, sender_id, user_id}: IRequest) {
+  async execute({ amount, description, sender_id, user_id }: IRequest) {
     //verifica se o usuario recebedor existe
     const user_receiver = await this.usersRepository.findById(user_id);
 
@@ -40,14 +40,23 @@ class TransferStatementUseCase {
       throw new TransferStatementError.InsufficientFunds();
     }
 
-    const statementOperation = await this.statementsRepository.create({
-      user_id,
-      type: "transfer" as OperationType,
+    const statementTransfer = await this.statementsRepository.create({
+      user_id: sender_id,
+      type: OperationType.TRANSFER,
       amount,
       description
     });
 
-    return statementOperation;
+    const statementDeposit = await this.statementsRepository.create({
+      user_id,
+      type: OperationType.DEPOSIT,
+      amount,
+      description
+    });
+
+    const new_balance_sender = await this.statementsRepository.getUserBalance({user_id: sender_id});
+
+    return new_balance_sender;
   }
 }
 
